@@ -2,22 +2,21 @@
 """
 Tarot MCP Server
 
-Reads "The Ultimate Guide to Tarot" PDF and returns card meanings
-by finding each card's exact section in the book.
+Loads pre-extracted card meanings from tarot_index.json and serves them.
 """
 
 import re
 import os
+import json
 from contextlib import asynccontextmanager
 from typing import List, Optional, Dict
 
-import pdfplumber
 from pydantic import BaseModel, Field, field_validator, ConfigDict
 from mcp.server.fastmcp import FastMCP, Context
 
 # ── Constants ────────────────────────────────────────────────────────────────
 
-PDF_PATH = os.environ.get("TAROT_PDF_PATH", "tarot.pdf")
+INDEX_PATH = os.environ.get("TAROT_INDEX_PATH", "tarot_index.json")
 
 # Canonical card names exactly as they appear in this book
 # Key = what we search for in headings, value = display name
@@ -121,7 +120,24 @@ def _build_aliases() -> None:
 
 _build_aliases()
 
-# ── PDF Parsing ───────────────────────────────────────────────────────────────
+# ── Lifespan ──────────────────────────────────────────────────────────────────
+
+@asynccontextmanager
+async def app_lifespan(app):
+    if not os.path.exists(INDEX_PATH):
+        raise FileNotFoundError(
+            f"Index not found at '{INDEX_PATH}'. "
+            "Set the TAROT_INDEX_PATH environment variable to the correct path."
+        )
+    print(f"Loading tarot index from: {INDEX_PATH}")
+    with open(INDEX_PATH, "r", encoding="utf-8") as f:
+        card_index = json.load(f)
+    found = sum(1 for v in card_index.values() if v)
+    print(f"Ready. Loaded {found} cards.")
+    yield {"card_index": card_index}
+
+
+# ── OLD PDF Parsing (kept for reference) ─────────────────────────────────────
 
 def build_card_index(pdf_path: str) -> Dict[str, str]:
     """
@@ -420,4 +436,4 @@ async def tarot_list_cards(ctx: Context) -> str:
 # ── Entry Point ───────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    mcp.run()
+    mcp.run(transport="streamable-http", host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))

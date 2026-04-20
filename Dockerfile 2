@@ -6,9 +6,9 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY server.py .
-COPY tarot.pdf .
+COPY tarot_index.json .
 
-ENV TAROT_PDF_PATH="tarot.pdf"
+ENV TAROT_INDEX_PATH="tarot_index.json"
 
 EXPOSE 8000
 
