@@ -6,9 +6,9 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY server.py .
-COPY "The Ultimate Guide to Tarot - A Beginner.pdf" .
+COPY tarot.pdf .
 
-ENV TAROT_PDF_PATH="The Ultimate Guide to Tarot - A Beginner.pdf"
+ENV TAROT_PDF_PATH="tarot.pdf"
 
 EXPOSE 8000
 
