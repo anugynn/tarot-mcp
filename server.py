@@ -436,4 +436,6 @@ async def tarot_list_cards(ctx: Context) -> str:
 # ── Entry Point ───────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    mcp.run(transport="streamable-http", host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
+    import uvicorn
+    app = mcp.streamable_http_app()
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
